@@ -10,17 +10,11 @@ Completed
 
 ## Goals
 
-- Implement the initial TrustLens authentication experience for login and registration.
-- Add TanStack Start routes for `/login` and `/register`.
-- Establish a shared authentication layout that is professional, trustworthy, security-focused, responsive, and accessible.
-- Configure shadcn/ui if needed and use only the required components for this feature.
-- Use Tailwind CSS v4, existing TrustLens design tokens, Lucide React icons, and official third-party brand assets.
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Feature specification: [context/features/login_register_phase.md](features/login_register_phase.md).
-- Visual reference: `context/screenshots/authentication_ui/login_register_ui.png`.
-- Keep authentication UI changes separate from authentication backend implementation.
+<!-- Any extra notes -->
 
 ## History
 
