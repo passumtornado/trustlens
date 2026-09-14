@@ -1,0 +1,17 @@
+{
+  "projectName": "trustlens",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "npm",
+  "includeExamples": false,
+  "tailwind": false,
+  "projectPreset": "blank",
+  "addOnOptions": {},
+  "git": true,
+  "install": true,
+  "intent": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": []
+}
