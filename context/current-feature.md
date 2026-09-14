@@ -1,4 +1,4 @@
-# Current Feature: Dashboard Sidebar / Navigation + Dark / Light Mode
+# Current Feature:
 
 <!-- Feature Name -->
 
@@ -6,26 +6,15 @@
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+Not Started
 
 ## Goals
 
 <!-- Goals & requirements -->
 
-- Create a reusable authenticated dashboard shell with a persistent sidebar.
-- Add TrustLens branding and navigation for Dashboard/Home, New Scan, Scan History, Reports, Profile, and Settings.
-- Highlight the active route and include a display-only Free Plan usage card with progress.
-- Support a full desktop sidebar and collapsible/drawer navigation on smaller screens.
-- Add light, dark, and system theme modes with persisted client-side selection.
-- Keep semantic colors readable across themes and use shadcn/ui components where useful.
-- Provide a placeholder dashboard page only; keep dashboard content, charts, history tables, and report details out of scope.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Feature specification: [context/features/feature-03-dashboard-sidebar-navigation.md](features/feature-03-dashboard-sidebar-navigation.md).
-- Reuse TanStack Router links and active-state behavior; avoid duplicating sidebar markup across dashboard routes.
 
 ## History
 
