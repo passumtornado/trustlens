@@ -15,7 +15,7 @@ type AuthShellProps = {
   description: string;
   footerText: string;
   footerLinkText: string;
-  footerLinkTo: "/login" | "/register";
+  footerLinkTo: "/login" | "/register" | "/forgot-password";
 };
 
 const trustSignals = [

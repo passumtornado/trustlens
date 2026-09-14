@@ -7,6 +7,9 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
+import { Link } from "@tanstack/react-router";
+
+import { loginSchema, registerSchema } from "../../lib/auth-schemas";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -17,13 +20,37 @@ const inputClassName =
 
 export function AuthForm({ mode }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const isRegister = mode === "register";
 
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const values = {
+      name: String(formData.get("name") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      password: String(formData.get("password") ?? ""),
+      terms: formData.get("terms") === "on" || formData.get("terms") === "true",
+    };
+    const result = isRegister
+      ? registerSchema.safeParse(values)
+      : loginSchema.safeParse(values);
+
+    if (result.success) {
+      setFieldErrors({});
+      return;
+    }
+
+    const nextErrors: Record<string, string> = {};
+    for (const issue of result.error.issues) {
+      const field = String(issue.path[0] ?? "form");
+      if (!nextErrors[field]) nextErrors[field] = issue.message;
+    }
+    setFieldErrors(nextErrors);
+  }
+
   return (
-    <form
-      className="space-y-2 sm:space-y-5"
-      onSubmit={(event) => event.preventDefault()}
-    >
+    <form className="space-y-2 sm:space-y-5" onSubmit={handleSubmit} noValidate>
       {isRegister && (
         <div>
           <Label htmlFor="name" className="sr-only">
@@ -40,9 +67,19 @@ export function AuthForm({ mode }: AuthFormProps) {
               placeholder="Your name"
               autoComplete="name"
               className={`${inputClassName} pl-11`}
-              required
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={fieldErrors.name ? "name-error" : undefined}
             />
           </div>
+          {fieldErrors.name && (
+            <p
+              id="name-error"
+              className="mt-1 text-xs font-medium text-risk-danger"
+              role="alert"
+            >
+              {fieldErrors.name}
+            </p>
+          )}
         </div>
       )}
 
@@ -62,9 +99,19 @@ export function AuthForm({ mode }: AuthFormProps) {
             placeholder="you@example.com"
             autoComplete="email"
             className={`${inputClassName} pl-11`}
-            required
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "email-error" : undefined}
           />
         </div>
+        {fieldErrors.email && (
+          <p
+            id="email-error"
+            className="mt-1 text-xs font-medium text-risk-danger"
+            role="alert"
+          >
+            {fieldErrors.email}
+          </p>
+        )}
       </div>
 
       <div>
@@ -86,7 +133,10 @@ export function AuthForm({ mode }: AuthFormProps) {
             autoComplete={isRegister ? "new-password" : "current-password"}
             className={`${inputClassName} pl-11 pr-12`}
             minLength={8}
-            required
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={
+              fieldErrors.password ? "password-error" : undefined
+            }
           />
           <button
             type="button"
@@ -97,11 +147,24 @@ export function AuthForm({ mode }: AuthFormProps) {
             {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
         </div>
+        {fieldErrors.password && (
+          <p
+            id="password-error"
+            className="mt-1 text-xs font-medium text-risk-danger"
+            role="alert"
+          >
+            {fieldErrors.password}
+          </p>
+        )}
       </div>
 
       {isRegister ? (
         <label className="flex items-start gap-3 text-xs leading-5 text-[#738185]">
-          <Checkbox name="terms" className="mt-0.5" required />
+          <Checkbox
+            name="terms"
+            className="mt-0.5"
+            aria-invalid={Boolean(fieldErrors.terms)}
+          />
           <span>
             I agree to the{" "}
             <a
@@ -126,13 +189,18 @@ export function AuthForm({ mode }: AuthFormProps) {
             <Checkbox name="remember" defaultChecked />
             Remember me on this device
           </label>
-          <a
-            href="#forgot-password"
+          <Link
+            to="/forgot-password"
             className="shrink-0 font-semibold text-trust-blue hover:underline"
           >
             Forgot password?
-          </a>
+          </Link>
         </div>
+      )}
+      {fieldErrors.terms && (
+        <p className="text-xs font-medium text-risk-danger" role="alert">
+          {fieldErrors.terms}
+        </p>
       )}
 
       <Button
