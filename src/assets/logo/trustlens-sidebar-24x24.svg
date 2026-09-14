@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="TrustLens">
+  <title>TrustLens</title>
+
+  <g transform="translate(0 0) scale(0.2400)">
+    <path d="M50 2 C66 13 79 19 95 22 V49 C95 73 77 91 50 99 C23 91 5 73 5 49 V22 C21 19 34 13 50 2 Z" fill="#0B63F6"/>
+    <path d="M50 2 C66 13 79 19 95 22 V49 C95 73 77 91 50 99 V2 Z" fill="#12BFF2"/>
+    <circle cx="50" cy="47" r="25" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+    <circle cx="50" cy="47" r="13" fill="#0A2A5E"/>
+    <circle cx="58" cy="39" r="4.5" fill="#FFFFFF"/>
+    <path d="M68 65 L84 81" stroke="#FFFFFF" stroke-width="8" stroke-linecap="square"/>
+  </g>
+</svg>
