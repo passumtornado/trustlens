@@ -38,3 +38,6 @@ Not Started
 - 2026-09-18: Added the responsive `/scan/new` page inside the shared dashboard shell with the top bar, sidebar, website-check card, URL input, Start Scan action, example domain chips, investigation capability grid, and safety/isolation banner.
 - 2026-09-18: Added Zod client-side URL validation, blocked empty/whitespace submissions, added loading/queued/error states, and ensured the browser never fetches or navigates to the submitted URL.
 - 2026-09-18: Validated the route with diagnostics, `npm run build`, `git diff --check`, and browser checks for form validation, example-chip population, loading state, responsive layout, and dashboard shell rendering.
+- 2026-09-18: Feature 6 — Scan History Page started; status set to In Progress.
+- 2026-09-18: Implemented the `/scans` route with the shared dashboard shell, Postgres-backed scan history loading, responsive search/filter controls, risk and status badges, mobile-friendly cards, empty/loading/error states, and report action links.
+- 2026-09-18: Fixed the filter row alignment and spacing, improved select chevron positioning, and verified the page builds successfully with `npm run build`; status set to Completed.
