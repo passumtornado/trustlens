@@ -1,4 +1,4 @@
-# Current Feature: Dashboard Main Content
+# Current Feature:
 
 <!-- Feature Name -->
 
@@ -6,28 +6,15 @@
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+Not Started
 
 ## Goals
 
 <!-- Goals & requirements -->
 
-- Add dashboard metric cards for Total Scans, High Risk, Safe, and Impersonations.
-- Add reusable scans-over-time and risk-distribution visualizations.
-- Add a responsive Recent Scans table.
-- Use typed frontend-only mock data and reusable chart/data components.
-- Use semantic risk labels and icons; never communicate risk by color alone.
-- Include loading and empty-state placeholders even when mock data is used.
-- Match the approved TrustLens dashboard design inside the shared Feature 3 shell.
-- Keep real scan data, analytics backend, and notification backend out of scope.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Feature specification: [context/features/feature-04-dashboard-main-content.md](features/feature-04-dashboard-main-content.md).
-- Keep dashboard data display frontend-only for this feature.
-- Validate responsive charts/table behavior and `npm run build`.
 
 ## History
 
@@ -47,3 +34,7 @@ Completed
 - 2026-09-18: Replaced `prisma/seed.ts` with an idempotent Prisma 7 seed for ten demo scan scenarios, Better Auth-compatible demo user data, representative evidence/findings, and consistent completed reports; `pnpm prisma validate`, repeated `pnpm prisma db seed`, count checks, `npm run build`, and `git diff --check` passed; status set to Completed.
 - 2026-09-18: Dashboard Main Content feature started; status set to In Progress.
 - 2026-09-18: Replaced the dashboard placeholder with Postgres-backed metrics, scans-over-time and risk-distribution visualizations, Recent Scans table, loading state, and empty state; validated against seeded Neon data and passed diagnostics, `npm run build`, and `git diff --check`; status set to Completed.
+- 2026-09-18: New Scan Page feature started; status set to In Progress. The page will provide the dashboard-shell website trust investigation entry point, URL validation, example domains, safe-isolation messaging, and frontend-only queued/error states without browsing submitted targets.
+- 2026-09-18: Added the responsive `/scan/new` page inside the shared dashboard shell with the top bar, sidebar, website-check card, URL input, Start Scan action, example domain chips, investigation capability grid, and safety/isolation banner.
+- 2026-09-18: Added Zod client-side URL validation, blocked empty/whitespace submissions, added loading/queued/error states, and ensured the browser never fetches or navigates to the submitted URL.
+- 2026-09-18: Validated the route with diagnostics, `npm run build`, `git diff --check`, and browser checks for form validation, example-chip population, loading state, responsive layout, and dashboard shell rendering.
