@@ -1,11 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { DashboardPlaceholder } from "../components/dashboard/dashboard-placeholder";
-export const Route = createFileRoute("/scans")({ component: Scans });
+
+import { DashboardShell } from "../components/dashboard/dashboard-shell";
+import {
+  ScanHistoryContent,
+  ScanHistoryLoading,
+} from "../components/dashboard/scan-history-content";
+import { getScanHistoryData } from "../lib/server/scan-history-data";
+
+export const Route = createFileRoute("/scans")({
+  loader: () => getScanHistoryData(),
+  pendingComponent: ScanHistoryLoading,
+  component: Scans,
+});
+
 function Scans() {
+  const data = Route.useLoaderData();
+
   return (
-    <DashboardPlaceholder
-      title="Scan History"
-      description="Your scan history will appear here."
-    />
+    <DashboardShell>
+      <ScanHistoryContent data={data} />
+    </DashboardShell>
   );
 }
