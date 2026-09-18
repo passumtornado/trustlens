@@ -1,4 +1,4 @@
-# Current Feature: Seed Development Data
+# Current Feature: Dashboard Main Content
 
 <!-- Feature Name -->
 
@@ -12,23 +12,22 @@ Completed
 
 <!-- Goals & requirements -->
 
-- Create `prisma/seed.ts` using the existing Prisma 7 schema; do not add new models solely for seeding.
-- Seed only the intended Neon development database; never target production, and never log connection strings or secrets.
-- Use or locate a deterministic Better Auth development user (`demo@trustlens.dev`, name "TrustLens Demo", role USER, emailVerified true) without implementing custom password/session/OAuth logic.
-- Seed ten representative scan scenarios: established low-risk, low-risk, caution, suspicious, high-risk, brand impersonation, known-malicious simulation, insufficient-evidence, active, and failed — using fictional/reserved domains (e.g. `.test`) for suspicious examples.
-- Seed representative `DomainProfile`, DNS, TLS, `ThreatResult` (via `DEMO_THREAT_PROVIDER`), `Finding`, `BrandCandidate`, website snapshot metadata (no binaries/HTML), and `Report` data where the current schema supports it.
-- Keep completed `Report` records consistent with their parent `Scan` (riskScore/confidence/verdict), using deterministic versions (`riskEngineVersion: 1.0.0`, `scannerVersion: 1.0.0`, `modelVersion: seed-data-v1`).
-- Make seed execution idempotent via deterministic IDs and/or targeted upserts; cleanup must only affect seed-owned records.
-- Do not perform live scanning, network/RDAP/DNS/TLS calls, threat-provider/OpenAI calls, Playwright, BullMQ, or R2 uploads.
+- Add dashboard metric cards for Total Scans, High Risk, Safe, and Impersonations.
+- Add reusable scans-over-time and risk-distribution visualizations.
+- Add a responsive Recent Scans table.
+- Use typed frontend-only mock data and reusable chart/data components.
+- Use semantic risk labels and icons; never communicate risk by color alone.
+- Include loading and empty-state placeholders even when mock data is used.
+- Match the approved TrustLens dashboard design inside the shared Feature 3 shell.
+- Keep real scan data, analytics backend, and notification backend out of scope.
 
 ## Notes
 
 <!-- Any extra notes -->
 
-- Feature specification: [context/features/seed-spec.md](features/seed-spec.md).
-- The existing `prisma/seed.ts` may be overwritten as part of this feature.
-- If a model/relation/enum/field described in the spec doesn't exist in `prisma/schema.prisma`, seed what the schema currently supports and document the omission rather than changing the schema to fit the seed.
-- Validate with `pnpm prisma validate`, `pnpm prisma db seed`, and `npm run build`.
+- Feature specification: [context/features/feature-04-dashboard-main-content.md](features/feature-04-dashboard-main-content.md).
+- Keep dashboard data display frontend-only for this feature.
+- Validate responsive charts/table behavior and `npm run build`.
 
 ## History
 
@@ -46,3 +45,5 @@ Completed
 - 2026-09-18: Configured `DATABASE_URL`/`DIRECT_URL`, generated the Prisma Client, ran the initial migration against the Neon dev database, and verified runtime connectivity via the Neon adapter; `npm run build` passes; status set to Completed.
 - 2026-09-18: Seed development data feature started; status set to In Progress.
 - 2026-09-18: Replaced `prisma/seed.ts` with an idempotent Prisma 7 seed for ten demo scan scenarios, Better Auth-compatible demo user data, representative evidence/findings, and consistent completed reports; `pnpm prisma validate`, repeated `pnpm prisma db seed`, count checks, `npm run build`, and `git diff --check` passed; status set to Completed.
+- 2026-09-18: Dashboard Main Content feature started; status set to In Progress.
+- 2026-09-18: Replaced the dashboard placeholder with Postgres-backed metrics, scans-over-time and risk-distribution visualizations, Recent Scans table, loading state, and empty state; validated against seeded Neon data and passed diagnostics, `npm run build`, and `git diff --check`; status set to Completed.
