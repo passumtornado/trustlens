@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 
-type Theme = "light" | "dark" | "system";
+import {
+  applyTheme,
+  readStoredTheme,
+  setStoredTheme,
+  subscribeToThemeChanges,
+  type Theme,
+} from "../../lib/theme";
 
 const themeOptions: Array<{ value: Theme; label: string; icon: typeof Sun }> = [
   { value: "light", label: "Light", icon: Sun },
@@ -10,31 +16,20 @@ const themeOptions: Array<{ value: Theme; label: string; icon: typeof Sun }> = [
   { value: "system", label: "System", icon: Monitor },
 ];
 
-function applyTheme(theme: Theme) {
-  const isDark =
-    theme === "dark" ||
-    (theme === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.classList.toggle("dark", isDark);
-}
-
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem("trustlens-theme") as Theme | null;
-    const nextTheme =
-      storedTheme && themeOptions.some((option) => option.value === storedTheme)
-        ? storedTheme
-        : "system";
+    const nextTheme = readStoredTheme();
     setTheme(nextTheme);
     applyTheme(nextTheme);
+
+    return subscribeToThemeChanges(setTheme);
   }, []);
 
   function selectTheme(nextTheme: Theme) {
     setTheme(nextTheme);
-    localStorage.setItem("trustlens-theme", nextTheme);
-    applyTheme(nextTheme);
+    setStoredTheme(nextTheme);
   }
 
   return (
