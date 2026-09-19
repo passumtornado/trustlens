@@ -1,20 +1,29 @@
 # Current Feature:
 
-<!-- Feature Name -->
+Feature 7 — Settings Page
 
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
-
-Not Started
+Completed
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Build the TrustLens Settings page for managing account details, appearance, notifications, and privacy preferences.
+- Reuse the existing dashboard shell and keep the Settings item highlighted in the sidebar.
+- Add the page title and description: "Settings" / "Manage your account and preferences."
+- Present account information for name, email, and current plan, with edit and upgrade actions.
+- Add light, dark, and system theme options that stay synchronized with the existing theme behavior.
+- Include notification toggles for scan completion, security alerts, and product updates.
+- Add a data retention selector and a destructive Delete Account section with confirmation.
+- Match the provided Settings UI with existing TrustLens cards, spacing, typography, icons, and semantic colors.
+- Keep the page responsive, accessible, and TypeScript-safe without exposing secrets.
 
 ## Notes
 
-<!-- Any extra notes -->
+- The feature should use the current authenticated user data when available.
+- Notification preferences may be frontend-only unless persistence already exists.
+- The delete action must be confirmation-gated and should not perform a real account deletion.
+- The page should match the provided reference while using existing shadcn/ui patterns and the established dashboard shell.
 
 ## History
 
@@ -41,3 +50,6 @@ Not Started
 - 2026-09-18: Feature 6 — Scan History Page started; status set to In Progress.
 - 2026-09-18: Implemented the `/scans` route with the shared dashboard shell, Postgres-backed scan history loading, responsive search/filter controls, risk and status badges, mobile-friendly cards, empty/loading/error states, and report action links.
 - 2026-09-18: Fixed the filter row alignment and spacing, improved select chevron positioning, and verified the page builds successfully with `npm run build`; status set to Completed.
+- 2026-09-18: Feature 7 — Settings Page started; status set to In Progress.
+- 2026-09-18: Implemented the `/settings` route with the shared dashboard shell, Postgres-backed account info, editable name/email fields, appearance theme controls, notification toggles, data retention selector, and confirmation-gated delete account section.
+- 2026-09-19: Fixed a client-bundle crash caused by importing the server-only Prisma client directly in `settings.tsx` by moving the query into a `createServerFn` in `src/lib/server/settings-data.ts`, and synchronized the Appearance section with the top navigation theme toggle via a shared `src/lib/theme.ts` module; verified with `npm run build` and browser checks; status set to Completed.
