@@ -1,15 +1,23 @@
 import { useState } from "react";
 
-import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  LockKeyhole,
+  Mail,
+  UserRound,
+} from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import { loginSchema, registerSchema } from "../../lib/auth-schemas";
+import { authClient } from "../../lib/auth-client";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -19,11 +27,13 @@ const inputClassName =
   "h-10 rounded-[10px] border-[#cfdae2] bg-white px-4 text-sm text-[#30445f] placeholder:text-[#72808a] focus-visible:border-[#0b63f6] focus-visible:ring-[#0b63f6]/20 sm:h-12 sm:text-base";
 
 export function AuthForm({ mode }: AuthFormProps) {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isRegister = mode === "register";
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const values = {
@@ -36,17 +46,47 @@ export function AuthForm({ mode }: AuthFormProps) {
       ? registerSchema.safeParse(values)
       : loginSchema.safeParse(values);
 
-    if (result.success) {
-      setFieldErrors({});
+    if (!result.success) {
+      const nextErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = String(issue.path[0] ?? "form");
+        if (!nextErrors[field]) nextErrors[field] = issue.message;
+      }
+      setFieldErrors(nextErrors);
       return;
     }
 
-    const nextErrors: Record<string, string> = {};
-    for (const issue of result.error.issues) {
-      const field = String(issue.path[0] ?? "form");
-      if (!nextErrors[field]) nextErrors[field] = issue.message;
+    setFieldErrors({});
+    setIsSubmitting(true);
+
+    const { error } = isRegister
+      ? await authClient.signUp.email({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+        })
+      : await authClient.signIn.email({
+          email: values.email,
+          password: values.password,
+          rememberMe:
+            formData.get("remember") === "on" ||
+            formData.get("remember") === "true",
+        });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      setFieldErrors({
+        form:
+          error.message ??
+          (isRegister
+            ? "Unable to create your account. Please try again."
+            : "Invalid email or password."),
+      });
+      return;
     }
-    setFieldErrors(nextErrors);
+
+    await navigate({ to: "/dashboard" });
   }
 
   return (
@@ -203,11 +243,27 @@ export function AuthForm({ mode }: AuthFormProps) {
         </p>
       )}
 
+      {fieldErrors.form && (
+        <p className="text-xs font-medium text-risk-danger" role="alert">
+          {fieldErrors.form}
+        </p>
+      )}
+
       <Button
         type="submit"
+        disabled={isSubmitting}
         className="h-10 w-full bg-[#1478f2] text-base text-white hover:bg-[#0868dc] sm:h-12"
       >
-        {isRegister ? "Create your account" : "Sign in"}
+        {isSubmitting ? (
+          <>
+            <LoaderCircle className="animate-spin" size={17} />
+            {isRegister ? "Creating your account..." : "Signing in..."}
+          </>
+        ) : isRegister ? (
+          "Create your account"
+        ) : (
+          "Sign in"
+        )}
       </Button>
 
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-1 sm:gap-4">

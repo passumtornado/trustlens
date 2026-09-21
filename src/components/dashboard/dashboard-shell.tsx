@@ -8,7 +8,6 @@ import {
   Menu,
   Search,
   Settings,
-  ShieldCheck,
   UserRound,
   X,
   Zap,

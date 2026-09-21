@@ -1,20 +1,39 @@
 # Current Feature:
 
-<!-- Feature Name -->
+Database Feature 2 — User and Authentication Data
 
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
-
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Set up TrustLens user and authentication persistence using Better Auth, Prisma 7, and Neon PostgreSQL.
+- Configure Better Auth with the Prisma adapter, the shared server-side Prisma Client, and PostgreSQL as the database provider.
+- Use the Better Auth CLI to generate the required Prisma schema (User, Session, Account, Verification) instead of copying an old schema manually.
+- Extend the Better Auth User with only genuinely required TrustLens-specific fields (e.g. `role`, `plan`) using stable enums, without duplicating authentication secrets.
+- Establish explicit Prisma relations so an authenticated User can own TrustLens application data, at minimum `User -> Scan[]`.
+- Add a reviewed Prisma migration for the authentication schema changes and apply it to the Neon development database.
+- Keep authentication and database access server-side only.
 
 ## Notes
 
-<!-- Any extra notes -->
+- 2026-09-21 audit: Prisma validation/generation, TypeScript, production build, and migration checksum verification passed. Remaining issues: the reset callback logs token-bearing URLs, and nullable `User.name` differs from Better Auth's required name field. Better Auth CLI generation provenance and end-to-end authentication remain unverified. Feature completion is pending these follow-ups even though the current implementation is approved for merge.
+
+- 2026-09-21 development database recovery completed: the newly configured database was empty. Restored the matching local `DIRECT_URL`, applied all three existing migrations with `prisma migrate deploy`, and ran the existing development seed. Verified through the application's Prisma client: demo user lookup succeeds, 10 scans and 7 reports exist, and report scores/confidence/verdicts match their scans. No new migration or database reset was needed.
+
+- 2026-09-21 settings optimization fix: remove the unused default `Settings` export so TanStack Router can code-split the route component. Scope is export cleanup only; acceptance is a successful production build without the reported export warning.
+
+- 2026-09-21 auth-route fix completed: `/api/auth/$` and `/reset-password` compile without errors; corrected the installed Better Auth password-reset request API and regenerated route types. `npx tsc --noEmit`, `npm run build`, and `git diff --check` passed. Better Auth continues to own reset-token validation and password changes. End-to-end password recovery was not tested.
+
+- Better Auth remains solely responsible for credential/OAuth accounts, sessions, session tokens, verification records, and password/credential handling; no custom session/password/token system.
+- Never store plaintext passwords, password hashes, session tokens, OAuth credentials, or verification data in custom TrustLens profile fields.
+- Never expose Neon credentials, Better Auth secrets, password hashes, or session tokens; never log passwords, tokens, OAuth secrets, or connection strings.
+- Add constraints/indexes only where required by Better Auth or actual TrustLens query patterns; avoid redundant indexes where uniqueness already provides lookup support.
+- Configure cascade/deletion behavior deliberately; do not cascade-delete scans/reports without considering data-retention policy.
+- Workflow: `npx auth@latest generate` → `pnpm prisma format` → `pnpm prisma validate` → `pnpm prisma migrate dev --name add-better-auth` → `pnpm prisma generate`.
+- Out of scope: Login/Register UI, Forgot Password UI, Google OAuth provider configuration, email verification UI, account deletion implementation, billing/payment integration, notification preferences, admin user-management UI.
+- Reference `context/features/database-feature-2-user-auth.md` for the full specification.
 
 ## History
 
@@ -46,3 +65,4 @@ Not Started
 - 2026-09-19: Fixed a client-bundle crash caused by importing the server-only Prisma client directly in `settings.tsx` by moving the query into a `createServerFn` in `src/lib/server/settings-data.ts`, and synchronized the Appearance section with the top navigation theme toggle via a shared `src/lib/theme.ts` module; verified with `npm run build` and browser checks; status set to Completed.
 - 2026-09-19: Feature 8 — Profile Page added to the roadmap; status set to Not Started.
 - 2026-09-19: Feature 8 — Profile Page started on `feat/profile-page`; status set to In Progress. Implemented the `/profile` route with the shared dashboard shell, a Postgres-backed Profile Information card (avatar initials, Zod-validated full name/email, read-only role and member-since fields, verified badge, mock Change Photo/Save Changes placeholders), and a Change Password card with Zod validation, current/new/confirm fields, per-field visibility toggles, and a mock Update Password placeholder since no auth backend exists yet; verified with `npm run build` and browser checks for validation, theme parity, and light/dark rendering.
+- 2026-09-19: Database Feature 2 — User and Authentication Data added to the roadmap; status set to Not Started.

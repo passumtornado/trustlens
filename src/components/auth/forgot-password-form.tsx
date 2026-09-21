@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, LoaderCircle, Mail } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { forgotPasswordSchema } from "../../lib/auth-schemas";
+import { authClient } from "../../lib/auth-client";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -34,9 +35,16 @@ export function ForgotPasswordForm() {
     setState("loading");
     setErrorMessage("");
 
-    window.setTimeout(() => {
-      setState("success");
-    }, 700);
+    void authClient
+      .requestPasswordReset({
+        email: result.data.email,
+        redirectTo: "/reset-password",
+      })
+      .then(() => {
+        // Always show the generic success state, even if the account does not
+        // exist, to avoid leaking whether an email is registered.
+        setState("success");
+      });
   }
 
   if (state === "success") {

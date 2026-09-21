@@ -15,10 +15,12 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ScansRouteImport } from './routes/scans'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
 import { Route as ScanNewRouteImport } from './routes/scan.new'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -50,6 +52,11 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScansRoute = ScansRouteImport.update({
   id: '/scans',
   path: '/scans',
@@ -70,6 +77,11 @@ const ScanNewRoute = ScanNewRouteImport.update({
   path: '/scan/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -78,10 +90,12 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/scans': typeof ScansRoute
   '/settings': typeof SettingsRoute
   '/scan/new': typeof ScanNewRoute
   '/register/': typeof RegisterIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -90,10 +104,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/scans': typeof ScansRoute
   '/settings': typeof SettingsRoute
   '/scan/new': typeof ScanNewRoute
   '/register': typeof RegisterIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -103,10 +119,12 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/scans': typeof ScansRoute
   '/settings': typeof SettingsRoute
   '/scan/new': typeof ScanNewRoute
   '/register/': typeof RegisterIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,10 +135,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/reports'
+    | '/reset-password'
     | '/scans'
     | '/settings'
     | '/scan/new'
     | '/register/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -129,10 +149,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/reports'
+    | '/reset-password'
     | '/scans'
     | '/settings'
     | '/scan/new'
     | '/register'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
@@ -141,10 +163,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/reports'
+    | '/reset-password'
     | '/scans'
     | '/settings'
     | '/scan/new'
     | '/register/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -154,10 +178,12 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   ReportsRoute: typeof ReportsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ScansRoute: typeof ScansRoute
   SettingsRoute: typeof SettingsRoute
   ScanNewRoute: typeof ScanNewRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -204,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scans': {
       id: '/scans'
       path: '/scans'
@@ -232,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -242,10 +282,12 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   ReportsRoute: ReportsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ScansRoute: ScansRoute,
   SettingsRoute: SettingsRoute,
   ScanNewRoute: ScanNewRoute,
   RegisterIndexRoute: RegisterIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

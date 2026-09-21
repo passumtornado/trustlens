@@ -2,12 +2,9 @@
 // Core models are persistence models only; external/API payloads are
 // validated separately with Zod. See context/trustlens-coding-standards.md.
 //
-// The `User` model intentionally mirrors Better Auth's default core schema
-// (id/name/email/emailVerified/image/createdAt/updatedAt) so a future
-// `npx auth@latest generate` run can extend it without conflicts. Better
-// Auth's own Session/Account/Verification models are generated later by
-// the Better Auth CLI when authentication is wired up and are not created
-// here.
+// User/Session/Account/Verification are generated and kept in sync by the
+// Better Auth CLI (`npx auth generate --config src/lib/auth.ts`); re-run it
+// after changing src/lib/auth.ts instead of editing those models by hand.
 
 generator client {
   provider = "prisma-client"
@@ -21,6 +18,11 @@ datasource db {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
 }
 
 enum ScanStatus {
@@ -50,70 +52,75 @@ enum Severity {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  role          UserRole  @default(USER)
+  role          UserRole @default(USER)
+  plan          Plan     @default(FREE)
 
-  scans         Scan[]
-  settings      UserSettings?
+  scans    Scan[]
+  settings UserSettings?
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+  accounts  Account[]
+
+  @@map("user")
 }
 
 model UserSettings {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  theme       String   @default("system")
-  emailAlerts Boolean  @default(true)
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  theme       String  @default("system")
+  emailAlerts Boolean @default(true)
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Scan {
-  id                String     @id @default(cuid())
-  userId            String?
+  id     String  @id @default(cuid())
+  userId String?
 
-  inputUrl          String
-  normalizedUrl     String
+  inputUrl      String
+  normalizedUrl String
 
-  hostname          String
-  rootDomain        String
-  subdomain         String?
-  tld               String?
+  hostname   String
+  rootDomain String
+  subdomain  String?
+  tld        String?
 
-  status            ScanStatus @default(PENDING)
+  status ScanStatus @default(PENDING)
 
-  riskScore         Int?
-  confidence        Float?
-  verdict           Verdict?
+  riskScore  Int?
+  confidence Float?
+  verdict    Verdict?
 
   riskEngineVersion String?
   scannerVersion    String?
   modelVersion      String?
 
-  startedAt         DateTime?
-  completedAt       DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
 
-  user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  domainProfile     DomainProfile?
-  dnsResults        DnsResult[]
-  tlsResult         TlsResult?
-  threatResults     ThreatResult[]
-  snapshots         WebsiteSnapshot[]
-  brandCandidates   BrandCandidate[]
-  findings          Finding[]
-  aiAnalysis        AiAnalysis?
-  report            Report?
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  domainProfile   DomainProfile?
+  dnsResults      DnsResult[]
+  tlsResult       TlsResult?
+  threatResults   ThreatResult[]
+  snapshots       WebsiteSnapshot[]
+  brandCandidates BrandCandidate[]
+  findings        Finding[]
+  aiAnalysis      AiAnalysis?
+  report          Report?
 
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId, createdAt])
   @@index([status])
@@ -136,20 +143,20 @@ model DomainProfile {
   status                 String[]
   source                 String
 
-  scan                   Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 }
 
 model DnsResult {
-  id         String   @id @default(cuid())
+  id         String @id @default(cuid())
   scanId     String
   recordType String
   value      String
   ttl        Int?
   priority   Int?
 
-  scan       Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([scanId, recordType])
 }
@@ -166,9 +173,9 @@ model TlsResult {
   sanEntries      String[]
   errors          String[]
 
-  scan            Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime  @default(now())
+  createdAt DateTime @default(now())
 }
 
 model ThreatResult {
@@ -181,7 +188,7 @@ model ThreatResult {
   rawData    Json?
   checkedAt  DateTime
 
-  scan       Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
   @@index([scanId, provider])
 }
@@ -201,13 +208,13 @@ model WebsiteSnapshot {
   technologies    String[]
   htmlHash        String?
 
-  scan            Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model BrandCandidate {
-  id                String   @id @default(cuid())
+  id                String  @id @default(cuid())
   scanId            String
   brandName         String
   officialDomain    String?
@@ -218,7 +225,7 @@ model BrandCandidate {
   visualSimilarity  Float?
   evidence          Json?
 
-  scan              Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 }
 
 model Finding {
@@ -231,37 +238,85 @@ model Finding {
   source      String
   evidence    Json?
 
-  scan        Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
   @@index([scanId, severity])
 }
 
 model AiAnalysis {
-  id           String   @id @default(cuid())
-  scanId       String   @unique
+  id           String @id @default(cuid())
+  scanId       String @unique
   modelVersion String
   summary      String
   explanation  Json?
 
-  scan         Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Report {
-  id                String   @id @default(cuid())
-  scanId            String   @unique
-  userId            String?
+  id     String  @id @default(cuid())
+  scanId String  @unique
+  userId String?
 
-  verdict           Verdict
-  riskScore         Int
-  confidence        Float
+  verdict    Verdict
+  riskScore  Int
+  confidence Float
 
   summary           String
   riskEngineVersion String
   modelVersion      String?
 
-  generatedAt       DateTime @default(now())
+  generatedAt DateTime @default(now())
 
-  scan              Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

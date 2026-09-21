@@ -11,11 +11,11 @@
 ## Development Commands
 
 ```bash
-npm install
-npm run dev
-npm run generate-routes
-npm run build
-npm run preview
+pnpm install
+pnpm run dev
+pnpm run generate-routes
+pnpm run build
+pnpm run preview
 ```
 
 There are currently no configured test or lint scripts. Do not claim those checks were run unless they are added or invoked directly.

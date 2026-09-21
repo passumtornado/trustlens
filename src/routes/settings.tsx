@@ -427,5 +427,3 @@ function ToggleRow({ label, description, enabled, onChange }: ToggleRowProps) {
     </div>
   );
 }
-
-export default Settings;
