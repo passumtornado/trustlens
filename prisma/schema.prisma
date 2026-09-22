@@ -45,6 +45,14 @@ enum ScanStage {
   REPORT_GENERATION
 }
 
+// A provider result is evidence, not the final TrustLens verdict.
+enum ThreatResultStatus {
+  MATCH
+  NO_MATCH
+  UNKNOWN
+  ERROR
+}
+
 enum Verdict {
   LIKELY_SAFE
   LOW_RISK
@@ -207,14 +215,18 @@ model TlsResult {
 }
 
 model ThreatResult {
-  id         String   @id @default(cuid())
-  scanId     String
-  provider   String
-  detected   Boolean
-  categories String[]
-  confidence Float?
-  rawData    Json?
-  checkedAt  DateTime
+  id          String             @id @default(cuid())
+  scanId      String
+  provider    String
+  // Retained for compatibility; null for UNKNOWN or ERROR.
+  detected    Boolean?
+  status      ThreatResultStatus @default(UNKNOWN)
+  reference   String?
+  categories  String[]
+  confidence  Float?
+  // Only minimal, non-sensitive provider metadata; never full responses.
+  rawData     Json?
+  retrievedAt DateTime           @map("checkedAt")
 
   scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
@@ -257,14 +269,19 @@ model BrandCandidate {
 }
 
 model Finding {
-  id          String   @id @default(cuid())
-  scanId      String
-  code        String
-  severity    Severity
-  title       String
-  description String
-  source      String
-  evidence    Json?
+  id                String    @id @default(cuid())
+  scanId            String
+  type              String    @map("code")
+  severity          Severity
+  title             String
+  description       String
+  source            String
+  evidence          Json?
+  // Source-specific evidence key, provider reference, or internal artifact ID.
+  evidenceReference String?
+  scoreContribution Int?
+  // Legacy creation times are unknown; new findings receive a timestamp.
+  createdAt         DateTime? @default(now())
 
   scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 

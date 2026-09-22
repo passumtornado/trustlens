@@ -344,8 +344,8 @@ async function createEvidence() {
     data: [
       {
         scanId: "seed_scan_established",
-        code: "ESTABLISHED_DOMAIN",
-        severity: "LOW",
+        type: "ESTABLISHED_DOMAIN",
+        severity: "LOW" as const,
         title: "Established domain",
         description: "Synthetic evidence represents a long-established domain.",
         source: "DOMAIN_ANALYSIS",
@@ -353,8 +353,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_established",
-        code: "VALID_TLS",
-        severity: "LOW",
+        type: "VALID_TLS",
+        severity: "LOW" as const,
         title: "Valid TLS",
         description:
           "Synthetic evidence represents a valid matching certificate.",
@@ -363,8 +363,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_low_risk",
-        code: "NO_THREAT_MATCH",
-        severity: "LOW",
+        type: "NO_THREAT_MATCH",
+        severity: "LOW" as const,
         title: "No threat match",
         description: "The demo threat provider has no match for this scenario.",
         source: "THREAT_INTELLIGENCE",
@@ -372,8 +372,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_caution",
-        code: "YOUNG_DOMAIN",
-        severity: "MEDIUM",
+        type: "YOUNG_DOMAIN",
+        severity: "MEDIUM" as const,
         title: "Young domain",
         description:
           "Synthetic evidence represents a recently registered domain.",
@@ -382,8 +382,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_caution",
-        code: "NO_DNSSEC",
-        severity: "LOW",
+        type: "NO_DNSSEC",
+        severity: "LOW" as const,
         title: "DNSSEC unavailable",
         description: "Synthetic evidence represents DNSSEC not being detected.",
         source: "DNS_ANALYSIS",
@@ -391,8 +391,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_suspicious",
-        code: "SUSPICIOUS_LOGIN_PAGE",
-        severity: "HIGH",
+        type: "SUSPICIOUS_LOGIN_PAGE",
+        severity: "HIGH" as const,
         title: "Suspicious login page",
         description:
           "Synthetic evidence represents a credential collection form.",
@@ -401,8 +401,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_suspicious",
-        code: "SUSPICIOUS_REDIRECT",
-        severity: "HIGH",
+        type: "SUSPICIOUS_REDIRECT",
+        severity: "HIGH" as const,
         title: "Suspicious redirect",
         description: "Synthetic evidence represents an unexpected redirect.",
         source: "WEBSITE_ANALYSIS",
@@ -410,8 +410,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_high_risk",
-        code: "THREAT_PROVIDER_MATCH",
-        severity: "HIGH",
+        type: "THREAT_PROVIDER_MATCH",
+        severity: "HIGH" as const,
         title: "Simulated threat match",
         description:
           "The fictional demo provider simulated a social-engineering match.",
@@ -420,8 +420,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_impersonation",
-        code: "BRAND_IMPERSONATION",
-        severity: "CRITICAL",
+        type: "BRAND_IMPERSONATION",
+        severity: "CRITICAL" as const,
         title: "Possible PayPal impersonation",
         description:
           "Synthetic evidence represents a fictional brand-impersonation scenario.",
@@ -434,8 +434,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_impersonation",
-        code: "TYPOSQUATTING",
-        severity: "HIGH",
+        type: "TYPOSQUATTING",
+        severity: "HIGH" as const,
         title: "Typosquatting pattern",
         description:
           "The fictional domain substitutes a character in a brand-related hostname.",
@@ -444,8 +444,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_malicious",
-        code: "PHISHING_DETECTED",
-        severity: "CRITICAL",
+        type: "PHISHING_DETECTED",
+        severity: "CRITICAL" as const,
         title: "Simulated phishing detection",
         description:
           "Synthetic evidence exercises the known-malicious UI state.",
@@ -454,8 +454,8 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_malicious",
-        code: "MALICIOUS_INFRASTRUCTURE",
-        severity: "CRITICAL",
+        type: "MALICIOUS_INFRASTRUCTURE",
+        severity: "CRITICAL" as const,
         title: "Simulated malicious infrastructure",
         description:
           "Synthetic development evidence only; no live provider was called.",
@@ -464,15 +464,23 @@ async function createEvidence() {
       },
       {
         scanId: "seed_scan_insufficient",
-        code: "LIMITED_REPUTATION",
-        severity: "LOW",
+        type: "LIMITED_REPUTATION",
+        severity: "LOW" as const,
         title: "Limited evidence",
         description:
           "Insufficient synthetic evidence is available for a stronger assessment.",
         source: "RISK_ENGINE",
         evidence: { seedData: true },
       },
-    ],
+    ].map((finding) => {
+      const scenario = scenarios.find(({ id }) => id === finding.scanId);
+      if (!scenario) throw new Error("Missing finding seed scenario");
+      return {
+        ...finding,
+        evidenceReference: `seed:prisma/seed.ts:${finding.scanId}:${finding.type}`,
+        createdAt: new Date(scenario.createdAt),
+      };
+    }),
   });
 
   await prisma.threatResult.createMany({
@@ -481,27 +489,30 @@ async function createEvidence() {
         scanId: "seed_scan_established",
         provider: "DEMO_THREAT_PROVIDER",
         detected: false,
+        status: "NO_MATCH",
         categories: [],
         confidence: 96,
-        checkedAt: new Date("2026-09-10T08:00:10Z"),
+        retrievedAt: new Date("2026-09-10T08:00:10Z"),
         rawData: { seedData: true },
       },
       {
         scanId: "seed_scan_high_risk",
         provider: "DEMO_THREAT_PROVIDER",
         detected: true,
+        status: "MATCH",
         categories: ["SOCIAL_ENGINEERING"],
         confidence: 90,
-        checkedAt: new Date("2026-09-14T12:00:12Z"),
+        retrievedAt: new Date("2026-09-14T12:00:12Z"),
         rawData: { seedData: true },
       },
       {
         scanId: "seed_scan_malicious",
         provider: "DEMO_THREAT_PROVIDER",
         detected: true,
+        status: "MATCH",
         categories: ["PHISHING", "MALWARE"],
         confidence: 99,
-        checkedAt: new Date("2026-09-16T14:00:10Z"),
+        retrievedAt: new Date("2026-09-16T14:00:10Z"),
         rawData: { seedData: true },
       },
     ],
