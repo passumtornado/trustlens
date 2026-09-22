@@ -1,38 +1,18 @@
-# Current Feature: Database Feature 5 — Threat Results and Findings
+# Current Feature
+
+<!-- Feature Name -->
 
 ## Status
 
-Complete
+Not Started
 
 ## Goals
 
-- Use Prisma 7 + Neon PostgreSQL to persist external threat intelligence results and explainable TrustLens findings.
-- Adapt the existing ThreatResult and Finding models with explicit Scan relations supporting multiple results and findings per scan.
-- Store normalized threat provider results: provider, verdict/status, matched threats/categories, source/reference where appropriate, and retrievedAt.
-- Store finding type, typed severity and other stable values where appropriate, title, description, evidence source, optional score contribution, and createdAt.
-- Make each finding traceable to the evidence that produced it and keep score contributions explicit where used.
-- Add appropriate indexes for scan/provider results and findings without duplicating existing indexes.
-- Create and apply a reviewed Prisma migration to the Neon development database; pass Prisma validation/generation and the project build.
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Branch: `feature/threat-results-findings`.
-- Provider status is `MATCH`, `NO_MATCH`, `UNKNOWN`, or `ERROR`, separate from the final scan verdict. Keep the existing detected flag consistent (null for unknown/error); a database check enforces this invariant.
-- Map `retrievedAt` to the existing `checkedAt` column and finding `type` to `code`, preserving stored data. Finding type remains an extensible code; severity retains the existing enum.
-- Existing finding creation times and score contributions remain null rather than fabricated. New findings default to the current creation time; score contributions are optional signed integers supplied by future deterministic scoring logic.
-- Findings retain source and minimal supporting evidence, plus an optional source-specific evidence reference. Synthetic seed references point to the generating scenario in `prisma/seed.ts`. No provider integrations or risk calculations are introduced.
-- Database checks reject contradictory provider status/detection values and require a nonblank finding source plus either a nonblank evidence reference or a nonempty evidence object. These checks enforce metadata presence, not the truth or safety of external evidence; future provider inputs still need validation.
-- Existing `(scanId, provider)` and `(scanId, severity)` indexes support the required queries; no duplicate indexes were added.
-- Validation passed: Prisma format/validate/generate, TypeScript, production build, all three transaction-rollback database tests, migration preservation checks, and diff checks. Existing 3 threat results and 13 findings were preserved. Seed changes were type-checked but the seed was not rerun over existing data.
-- Tests: `pnpm exec tsx --test prisma/tests/scan-model.test.ts prisma/tests/domain-dns-tls.test.ts prisma/tests/threat-results-findings.test.ts` against the development database. Restart the dev server after Prisma regeneration to clear a cached client.
-
-- Specification: [Database Feature 5 — Threat Results and Findings](features/database/database-feature-5-threat-results-findings.md).
-- Review existing ThreatResult/Finding fields, persisted evidence, and seed consumers before changing the schema; preserve existing records and provenance.
-- Keep raw provider payloads minimal; do not store unnecessary full provider responses.
-- Records will feed the future risk engine, AI explanation, and reports. This feature stores evidence and score contributions; it does not calculate risk or generate AI conclusions.
-- Migration workflow: `pnpm prisma format` → `pnpm prisma validate` → `pnpm prisma migrate dev --name add-threat-results-findings` → `pnpm prisma generate`; then run `pnpm run build`.
-- Use the Neon development database/branch and the existing migration-based schema workflow.
-- Out of scope: threat provider API integration, risk calculation logic, AI explanation, and reports.
+<!-- Any extra notes -->
 
 ## History
 
@@ -77,3 +57,4 @@ Complete
 - 2026-09-22: Completed Database Feature 4 — Domain, DNS, and TLS Evidence with reusable domain snapshots, provenance/retrieval metadata, migration preservation checks, and passing database tests. Committed as 7c554f1 together with the prerequisite scan-model work, merged into main, and deleted the local evidence feature branch. Reset the current-feature template while preserving history.
 - 2026-09-22: Implemented Database Feature 5 on `feature/threat-results-findings`: typed provider outcomes, mapped retrieval timestamps/finding types, provider/evidence references, optional signed score contributions, and creation timestamps for new findings. Added database checks for detection consistency and provenance presence; retained existing scan/provider and scan/severity indexes.
 - 2026-09-22: Applied `20260922130000_add_threat_results_findings` to the development database and verified all 3 existing threat results and 13 findings were preserved. Prisma checks, TypeScript, build, three transaction-rollback database tests, preservation checks, and diff checks passed. Status set to Complete; no commit, push, or merge performed.
+- 2026-09-22: Completed Database Feature 5 — Threat Results and Findings with typed provider outcomes, finding provenance and optional score contributions, consistency constraints, preserved historical data, and passing database tests. Committed as 0b6c7c1, merged into main, and deleted the local feature branch. Reset the current-feature template while preserving history.
