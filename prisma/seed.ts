@@ -141,6 +141,10 @@ function urlFor(domain: string) {
 }
 
 async function removeSeedRecords() {
+  const profiles = await prisma.domainProfile.findMany({
+    where: { scans: { some: { id: { in: seedScanIds } } } },
+    select: { id: true },
+  });
   const where = { scanId: { in: seedScanIds } };
   await prisma.report.deleteMany({ where });
   await prisma.aiAnalysis.deleteMany({ where });
@@ -150,8 +154,11 @@ async function removeSeedRecords() {
   await prisma.threatResult.deleteMany({ where });
   await prisma.tlsResult.deleteMany({ where });
   await prisma.dnsResult.deleteMany({ where });
-  await prisma.domainProfile.deleteMany({ where });
   await prisma.scan.deleteMany({ where: { id: { in: seedScanIds } } });
+  // Preserve profiles reused by scans outside this seed.
+  await prisma.domainProfile.deleteMany({
+    where: { id: { in: profiles.map(({ id }) => id) }, scans: { none: {} } },
+  });
 }
 
 async function createScans(userId: string) {
@@ -167,12 +174,17 @@ async function createScans(userId: string) {
       data: {
         id: scenario.id,
         userId,
-        inputUrl: url,
+        submittedUrl: url,
         normalizedUrl: url,
         hostname: scenario.domain,
-        rootDomain: scenario.domain,
+        normalizedDomain: scenario.domain,
         tld: scenario.domain.split(".").at(-1),
         status: scenario.status,
+        stage: scenario.status === "COMPLETED" ? "REPORT_GENERATION"
+          : scenario.status === "FAILED" ? "WEBSITE_ANALYSIS" : "THREAT_INTELLIGENCE",
+        failureCode: scenario.status === "FAILED" ? "DEMO_CONNECTION_FAILURE" : null,
+        failureMessage: scenario.status === "FAILED" ? "The demo website could not be reached." : null,
+        failedStage: scenario.status === "FAILED" ? "WEBSITE_ANALYSIS" : null,
         riskScore: scenario.riskScore,
         confidence: scenario.confidence,
         verdict: scenario.verdict,
@@ -212,8 +224,8 @@ async function createScans(userId: string) {
 
 async function createEvidence() {
   const domainProfiles = scenarios.map((scenario, index) => ({
-    scanId: scenario.id,
-    domain: scenario.domain,
+    normalizedDomain: scenario.domain,
+    retrievedAt: new Date(scenario.createdAt),
     registrar: "DEMO_REGISTRAR",
     registrationDate: new Date(`202${index % 4}-01-01T00:00:00Z`),
     expirationDate: new Date("2027-01-01T00:00:00Z"),
@@ -227,12 +239,34 @@ async function createEvidence() {
     status: ["clientTransferProhibited"],
     source: "SEED_DATA",
   }));
-  await prisma.domainProfile.createMany({ data: domainProfiles });
+  for (const [index, profile] of domainProfiles.entries()) {
+    const scenario = scenarios[index];
+    if (!scenario) throw new Error("Missing seed scenario");
+    await prisma.scan.update({
+      where: { id: scenario.id },
+      data: {
+        domainProfile: {
+          connectOrCreate: {
+            where: {
+              normalizedDomain_source_retrievedAt: {
+                normalizedDomain: profile.normalizedDomain,
+                source: profile.source,
+                retrievedAt: profile.retrievedAt,
+              },
+            },
+            create: profile,
+          },
+        },
+      },
+    });
+  }
 
   await prisma.dnsResult.createMany({
     data: scenarios.flatMap((scenario, index) => [
       {
         scanId: scenario.id,
+        source: "SEED_DATA",
+        retrievedAt: new Date(scenario.createdAt),
         recordType: "A",
         value: `192.0.2.${index + 1}`,
         ttl: 300,
@@ -240,6 +274,8 @@ async function createEvidence() {
       },
       {
         scanId: scenario.id,
+        source: "SEED_DATA",
+        retrievedAt: new Date(scenario.createdAt),
         recordType: "AAAA",
         value: "2001:db8::1",
         ttl: 300,
@@ -247,6 +283,8 @@ async function createEvidence() {
       },
       {
         scanId: scenario.id,
+        source: "SEED_DATA",
+        retrievedAt: new Date(scenario.createdAt),
         recordType: "MX",
         value: "mail.demo.test",
         ttl: 300,
@@ -254,6 +292,8 @@ async function createEvidence() {
       },
       {
         scanId: scenario.id,
+        source: "SEED_DATA",
+        retrievedAt: new Date(scenario.createdAt),
         recordType: "NS",
         value: "ns1.demo.test",
         ttl: 3600,
@@ -265,6 +305,8 @@ async function createEvidence() {
   await prisma.tlsResult.createMany({
     data: scenarios.map((scenario) => ({
       scanId: scenario.id,
+      source: "SEED_DATA",
+      retrievedAt: new Date(scenario.createdAt),
       valid: !["seed_scan_suspicious", "seed_scan_failed"].includes(
         scenario.id,
       ),

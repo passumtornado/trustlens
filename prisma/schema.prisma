@@ -33,6 +33,18 @@ enum ScanStatus {
   FAILED
 }
 
+enum ScanStage {
+  VALIDATION
+  DNS_SECURITY_CHECKS
+  DOMAIN_ANALYSIS
+  TLS_ANALYSIS
+  THREAT_INTELLIGENCE
+  WEBSITE_ANALYSIS
+  BRAND_ANALYSIS
+  RISK_ANALYSIS
+  REPORT_GENERATION
+}
+
 enum Verdict {
   LIKELY_SAFE
   LOW_RISK
@@ -84,18 +96,25 @@ model UserSettings {
 }
 
 model Scan {
-  id     String  @id @default(cuid())
-  userId String?
+  id     String @id @default(cuid())
+  userId String
 
-  inputUrl      String
+  submittedUrl  String @map("inputUrl")
   normalizedUrl String
 
-  hostname   String
-  rootDomain String
-  subdomain  String?
-  tld        String?
+  hostname         String
+  normalizedDomain String  @map("rootDomain")
+  subdomain        String?
+  tld              String?
 
-  status ScanStatus @default(PENDING)
+  status ScanStatus @default(QUEUED)
+  // Null means a legacy scan has no recorded pipeline stage.
+  stage  ScanStage? @default(VALIDATION)
+
+  // Only user-safe descriptions belong here; never raw provider errors.
+  failureCode    String?    @db.VarChar(64)
+  failureMessage String?    @db.VarChar(256)
+  failedStage    ScanStage?
 
   riskScore  Int?
   confidence Float?
@@ -108,8 +127,9 @@ model Scan {
   startedAt   DateTime?
   completedAt DateTime?
 
-  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  domainProfile   DomainProfile?
+  user            User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  domainProfileId String?
+  domainProfile   DomainProfile?    @relation(fields: [domainProfileId], references: [id], onDelete: Restrict)
   dnsResults      DnsResult[]
   tlsResult       TlsResult?
   threatResults   ThreatResult[]
@@ -122,15 +142,15 @@ model Scan {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([domainProfileId])
   @@index([userId, createdAt])
   @@index([status])
-  @@index([rootDomain])
+  @@index([normalizedDomain], map: "Scan_rootDomain_idx")
 }
 
 model DomainProfile {
   id                     String    @id @default(cuid())
-  scanId                 String    @unique
-  domain                 String
+  normalizedDomain       String    @map("domain")
   registrar              String?
   registrationDate       DateTime?
   expirationDate         DateTime?
@@ -142,28 +162,36 @@ model DomainProfile {
   dnssec                 Boolean?
   status                 String[]
   source                 String
+  retrievedAt            DateTime?
 
-  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scans Scan[]
+
+  // Lookup a provider's most recent snapshot or reuse the exact observation.
+  @@unique([normalizedDomain, source, retrievedAt])
 }
 
 model DnsResult {
-  id         String @id @default(cuid())
-  scanId     String
-  recordType String
-  value      String
-  ttl        Int?
-  priority   Int?
+  id          String    @id @default(cuid())
+  scanId      String
+  source      String
+  retrievedAt DateTime?
+  recordType  String
+  value       String
+  ttl         Int?
+  priority    Int?
 
   scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@index([scanId, recordType])
+  @@index([scanId, recordType, retrievedAt])
 }
 
 model TlsResult {
   id              String    @id @default(cuid())
   scanId          String    @unique
+  source          String
+  retrievedAt     DateTime?
   valid           Boolean
   issuer          String?
   subject         String?

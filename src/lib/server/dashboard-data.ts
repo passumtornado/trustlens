@@ -64,7 +64,7 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        rootDomain: true,
+        normalizedDomain: true,
         riskScore: true,
         confidence: true,
         verdict: true,
@@ -114,7 +114,7 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(
       riskDistribution: distribution,
       recentScans: scans.slice(0, 8).map((scan) => ({
         id: scan.id,
-        domain: scan.rootDomain,
+        domain: scan.normalizedDomain,
         riskScore: scan.riskScore,
         confidence: scan.confidence,
         verdict: scan.verdict,

@@ -39,8 +39,8 @@ export const getScanHistoryData = createServerFn({ method: "GET" }).handler(
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        inputUrl: true,
-        rootDomain: true,
+        submittedUrl: true,
+        normalizedDomain: true,
         riskScore: true,
         confidence: true,
         verdict: true,
@@ -65,8 +65,8 @@ export const getScanHistoryData = createServerFn({ method: "GET" }).handler(
 
         return {
           id: scan.id,
-          domain: scan.rootDomain,
-          inputUrl: scan.inputUrl,
+          domain: scan.normalizedDomain,
+          inputUrl: scan.submittedUrl,
           riskScore: scan.riskScore,
           confidence: scan.confidence,
           verdict: scan.verdict,
