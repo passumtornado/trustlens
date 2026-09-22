@@ -1,18 +1,35 @@
-# Current Feature
-
-<!-- Feature Name -->
+# Current Feature: Database Feature 6 — Website Snapshot and Artifact Metadata
 
 ## Status
 
-Not Started
+Complete
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Use Prisma 7 + Neon PostgreSQL to store website screenshot and scanner artifact metadata while keeping actual files in Cloudflare R2.
+- Adapt the existing WebsiteSnapshot model with an explicit Scan relation supporting multiple snapshots/artifacts per scan.
+- Store scanId, artifact type, R2 object key, MIME type, file size, dimensions where applicable, createdAt, and expiry/retention metadata when needed.
+- Support saving and retrieving artifact metadata linked to the correct Scan, with ownership resolved through User → Scan → WebsiteSnapshot.
+- Store R2 object references rather than screenshot binaries, base64 data, raw HTML, or other large artifact content in PostgreSQL.
+- Create and apply a reviewed Prisma migration to the Neon development database; pass Prisma validation/generation and the project build.
 
 ## Notes
 
-<!-- Any extra notes -->
+- Validation passed: Prisma format/validate/generate, TypeScript, production build, four transaction-rollback database tests, preservation checks, and diff checks. All 10 existing snapshots are unchanged apart from new null fields.
+- Database constraints enforce complete artifact metadata, nonnegative sizes, positive paired dimensions, and expiry after creation. Object keys cannot be URLs/data URIs; MIME values use a base type/subtype. These are metadata checks, not validation of actual R2 objects or file content.
+- Run database tests with `pnpm exec tsx --test prisma/tests/*.test.ts` against the development database. No R2 calls or artifacts are created. Restart the dev server after regenerating Prisma to clear any cached client.
+
+- Branch: `feature/website-snapshot-metadata`.
+- Preserve existing page observations with null artifact fields. New stored-artifact records supply artifact type, R2 object key, MIME type, and byte size together; dimensions are an optional positive pair. Existing URL fields remain legacy page metadata, not an artifact-delivery mechanism.
+- Use BigInt for byte sizes; future client-facing APIs must serialize this explicitly. Optional expiresAt records retention intent without deleting files. Index scan ownership lookups and expiry queries.
+- No R2 objects or synthetic storage keys will be created for existing seed records. Tests use fictional object references inside rolled-back database transactions.
+
+- Specification: [Database Feature 6 — Website Snapshot and Artifact Metadata](features/database/database-feature-6-website-snapshot-updated.md).
+- Review existing WebsiteSnapshot fields, persisted records, and seed consumers before changing the schema; preserve existing metadata and scan ownership relationships.
+- Ownership derives from the related Scan and User; avoid duplicating ownership fields on artifact metadata.
+- Migration workflow: `pnpm prisma format` → `pnpm prisma validate` → `pnpm prisma migrate dev --name add-website-snapshots` → `pnpm prisma generate`; then run `pnpm run build`.
+- Use the Neon development database/branch and the existing migration-based schema workflow.
+- Out of scope: R2 upload implementation, signed URL generation, screenshot capture logic, and artifact delivery/download.
 
 ## History
 
@@ -58,3 +75,5 @@ Not Started
 - 2026-09-22: Implemented Database Feature 5 on `feature/threat-results-findings`: typed provider outcomes, mapped retrieval timestamps/finding types, provider/evidence references, optional signed score contributions, and creation timestamps for new findings. Added database checks for detection consistency and provenance presence; retained existing scan/provider and scan/severity indexes.
 - 2026-09-22: Applied `20260922130000_add_threat_results_findings` to the development database and verified all 3 existing threat results and 13 findings were preserved. Prisma checks, TypeScript, build, three transaction-rollback database tests, preservation checks, and diff checks passed. Status set to Complete; no commit, push, or merge performed.
 - 2026-09-22: Completed Database Feature 5 — Threat Results and Findings with typed provider outcomes, finding provenance and optional score contributions, consistency constraints, preserved historical data, and passing database tests. Committed as 0b6c7c1, merged into main, and deleted the local feature branch. Reset the current-feature template while preserving history.
+- 2026-09-22: Implemented Database Feature 6 on `feature/website-snapshot-metadata`: typed artifact metadata, R2 object references, BigInt byte sizes, optional dimensions/expiry, scan/expiry indexes, and metadata consistency checks. Ownership resolves through Scan and User; upload, capture, delivery, and retention execution remain out of scope.
+- 2026-09-22: Applied `20260922160000_add_website_snapshots` to the development database; verified all 10 existing snapshots were preserved without fabricated artifact references. Prisma checks, TypeScript, build, all four transaction-rollback database tests, preservation checks, and diff checks passed. Status set to Complete; no commit, push, or merge performed.

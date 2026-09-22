@@ -53,6 +53,13 @@ enum ThreatResultStatus {
   ERROR
 }
 
+enum ArtifactType {
+  SCREENSHOT
+  HTML_CAPTURE
+  BROWSER_CAPTURE
+  OTHER
+}
+
 enum Verdict {
   LIKELY_SAFE
   LOW_RISK
@@ -234,6 +241,15 @@ model ThreatResult {
 }
 
 model WebsiteSnapshot {
+  // Null together for legacy page observations without a stored artifact.
+  artifactType ArtifactType?
+  r2ObjectKey  String?       @db.VarChar(1024)
+  mimeType     String?       @db.VarChar(127)
+  sizeBytes    BigInt?
+  width        Int?
+  height       Int?
+  expiresAt    DateTime?
+
   id              String   @id @default(cuid())
   scanId          String
   requestedUrl    String
@@ -251,6 +267,9 @@ model WebsiteSnapshot {
   scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+
+  @@index([scanId])
+  @@index([expiresAt])
 }
 
 model BrandCandidate {
