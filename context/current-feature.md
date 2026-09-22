@@ -1,34 +1,18 @@
-# Current Feature: Database Feature 4 — Domain, DNS, and TLS Evidence
+# Current Feature
+
+<!-- Feature Name -->
 
 ## Status
 
-Complete
+Not Started
 
 ## Goals
 
-- Use Prisma 7 + Neon PostgreSQL to persist structured domain, DNS, and TLS evidence linked to the existing Scan model.
-- Adapt the existing DomainProfile, DnsResult, and TlsResult models with explicit relations compatible with later Findings and Reports.
-- Store normalized domain, registrar, registration/expiration dates, evidence source, and retrieval timestamps for domain profiles.
-- Store structured DNS record types, values/results, sources, and retrieval timestamps.
-- Store TLS certificate validity, issuer, subject/domain, validity dates, source where applicable, and retrieval timestamps.
-- Reuse or refresh domain-level data where appropriate to avoid unnecessary duplication; add only useful domain-lookup and freshness indexes.
-- Create and apply a reviewed Prisma migration to the Neon development database; pass Prisma validation/generation and the project build.
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Implementation branch: `feature/domain-dns-tls-evidence`; existing uncommitted Feature 3 work is preserved as a prerequisite.
-- DomainProfile becomes a reusable domain/source/retrieval-time snapshot referenced by scans. Refreshes create new snapshots rather than rewriting prior evidence. Deleting a scan does not delete a shared profile; deleting a referenced profile is restricted.
-- Legacy retrieval times remain null because they were not recorded. Missing legacy DNS/TLS sources are marked `LEGACY_UNKNOWN`; no provider or observation time is fabricated. New evidence should supply explicit source and retrieval time.
-- Reuse a snapshot through Prisma `connectOrCreate` on `(normalizedDomain, source, retrievedAt)`. Freshness queries must filter by domain/source and a non-null retrieval-time range; unknown legacy times are not fresh evidence. The compound unique index supports those lookups; DNS indexing now includes retrieval time after scan/record type.
-- Run focused validation with `pnpm exec tsx --test prisma/tests/scan-model.test.ts prisma/tests/domain-dns-tls.test.ts` against the development database. Tests roll back fixtures, including deletion/constraint checks.
-- Validation passed: Prisma format/validate/generate, TypeScript, production build, both database tests, migration preservation checks, and diff checks. Seed changes were type-checked but the seed was not rerun over existing data. Restart a running dev server after client regeneration to clear any cached Prisma instance.
-
-- Specification: [Database Feature 4 — Domain, DNS, and TLS Evidence](features/database/database-feature-4-domain-dns-tls.md).
-- Existing evidence models and seeded records must be considered before changing schema fields, relationships, or domain-data reuse behavior.
-- Keep raw provider payloads and large artifacts out of primary database tables; persist structured evidence only.
-- Migration workflow: `pnpm prisma format` → `pnpm prisma validate` → `pnpm prisma migrate dev --name add-domain-dns-tls-evidence` → `pnpm prisma generate`; then run `pnpm run build`.
-- Use the Neon development database/branch. Do not use `prisma db push` as the normal schema workflow.
-- Out of scope: threat intelligence, screenshots/raw browser artifacts, brand analysis, findings, risk scoring, and reports.
+<!-- Any extra notes -->
 
 ## History
 
@@ -70,3 +54,4 @@ Complete
 - 2026-09-21: Applied `20260921170000_add_scan_model` with `pnpm prisma migrate dev`; verified all 10 existing scans retained their ownership, URLs, statuses, scores, confidence, and verdicts. Unknown legacy stages remain null. Prisma format/validate/generate, TypeScript, production build, focused transaction-rollback database tests, and diff checks passed; status set to Completed. No commit or merge performed.
 - 2026-09-22: Implemented Database Feature 4 on `feature/domain-dns-tls-evidence`: domain/source/retrieval-time snapshots reusable across scans, DNS/TLS provenance and retrieval times, freshness indexes, and seed compatibility. Prior uncommitted Feature 3 work was preserved.
 - 2026-09-22: Applied `20260922100000_add_domain_dns_tls_evidence` to the development database. Verified all 10 domain profiles, 40 DNS results, 10 TLS results, and their scan links were preserved; unknown legacy metadata remains explicit. Prisma validation/generation, TypeScript, build, two transaction-rollback database tests, and diff checks passed. Status set to Complete; no commit, push, or merge performed.
+- 2026-09-22: Completed Database Feature 4 — Domain, DNS, and TLS Evidence with reusable domain snapshots, provenance/retrieval metadata, migration preservation checks, and passing database tests. Committed as 7c554f1 together with the prerequisite scan-model work, merged into main, and deleted the local evidence feature branch. Reset the current-feature template while preserving history.
